@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
-import { Pencil, Trash2, Calendar, Mail } from "lucide-react"
+import { Pencil, Trash2, Calendar, Mail, User } from "lucide-react"
 import { format } from "date-fns"
 
 interface Task {
@@ -55,7 +55,10 @@ export function TaskItem({ task, onEdit, onDelete, onToggle }: TaskItemProps) {
               )}
               {task.owner && (
                 <>
-                  <span>{task.owner.name}</span>
+                  <span className="flex items-center gap-1">
+                    <User className="h-3 w-3" />
+                    {task.owner.name}
+                    </span>
                   <span className="flex items-center gap-1">
                     <Mail className="h-3 w-3" />
                     {task.owner.email}
