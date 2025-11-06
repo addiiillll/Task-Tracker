@@ -21,8 +21,8 @@ const register = async (req, res) => {
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-       sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
     };
@@ -51,8 +51,8 @@ const login = async (req, res) => {
 
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-       sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
     };
@@ -70,7 +70,7 @@ const validateToken = async (req, res) => {
   try {
     // Token is extracted by authMiddleware and user is attached to req
     // If we reach here, the token is valid
-    
+
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: {
@@ -101,8 +101,8 @@ const logout = async (req, res) => {
     // Clear the httpOnly cookie
     res.clearCookie('token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-       sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       path: '/',
       // Don't set domain in development to allow localhost and 127.0.0.1
     });
@@ -111,16 +111,16 @@ const logout = async (req, res) => {
     if (req.user && req.user.id) {
       await prisma.user.update({
         where: { id: req.user.id },
-        data: { 
+        data: {
           lastLoginAt: null, // or you could add a lastLogoutAt field
           deviceToken: null, // Clear device token for push notifications
         },
       });
     }
 
-    res.json({ 
-      success: true, 
-      message: 'Logged out successfully' 
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
     });
 
   } catch (error) {
