@@ -1,101 +1,77 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { authApi } from "@/lib/api/auth"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import {
-    Field,
-    FieldDescription,
-    FieldGroup,
-    FieldLabel,
-} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import Link from "next/link"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { authApi } from "@/lib/api/auth"
+import { toast } from "sonner"
 
-export function LoginForm({ className }: { className?: string }) {
-    const router = useRouter()
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+export function LoginForm() {
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError(null)
-        setLoading(true)
-        try {
-            await authApi.login({ email, password })
-            window.location.reload()
-            router.push("/tasks") // redirect to dashboard/home
-        } catch (e: any) {
-            setError(e?.message || "Login failed")
-        } finally {
-            setLoading(false)
-        }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      await authApi.login({ email, password })
+      toast.success("Login successful!")
+      router.push("/tasks")
+    } catch (error: any) {
+      toast.error(error?.message || "Login failed")
+    } finally {
+      setLoading(false)
     }
+  }
 
-    return (
-        <div className={cn("flex min-h-screen items-center justify-center p-4", className)}>
-            <Card className="w-full max-w-md">
-                <CardHeader className="text-center">
-                    <CardTitle className="text-xl">Welcome back</CardTitle>
-                    <CardDescription>Login with your account</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleLogin}>
-                        <FieldGroup>
-                            <Field>
-                                <FieldLabel htmlFor="email">Email</FieldLabel>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                            </Field>
-                            <Field>
-                                <FieldLabel htmlFor="password">Password</FieldLabel>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </Field>
-
-                            {error && <p className="text-sm text-destructive">{error}</p>}
-
-                            <Field>
-                                <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? "Signing in..." : "Login"}
-                                </Button>
-                                <FieldDescription className="text-center mt-2">
-                                    Don’t have an account?{" "}
-                                    <Link
-                                        href={'/auth/register'}
-                                        className="text-primary cursor-pointer"
-                                    >
-                                        Register
-                                    </Link>
-                                </FieldDescription>
-                            </Field>
-                        </FieldGroup>
-                    </form>
-                </CardContent>
-            </Card>
-        </div>
-    )
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Login</CardTitle>
+        <CardDescription>Enter your credentials to login</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium">
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="password" className="text-sm font-medium">
+              Password
+            </label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
 }
