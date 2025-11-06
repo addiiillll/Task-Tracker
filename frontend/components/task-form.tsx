@@ -1,23 +1,34 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus } from "lucide-react"
+import { Plus, CalendarIcon } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 
 interface TaskFormProps {
-  onSubmit: (title: string, description: string) => void
+  onSubmit: (title: string, description: string, dueDate?: string) => void
   isEditing?: boolean
   initialTitle?: string
   initialDescription?: string
+  initialDueDate?: Date | null
 }
 
-export function TaskForm({ onSubmit, isEditing = false, initialTitle = "", initialDescription = "" }: TaskFormProps) {
+export function TaskForm({
+  onSubmit,
+  isEditing = false,
+  initialTitle = "",
+  initialDescription = "",
+  initialDueDate = null,
+}: TaskFormProps) {
   const [title, setTitle] = useState(initialTitle)
   const [description, setDescription] = useState(initialDescription)
+  const [dueDate, setDueDate] = useState<Date | undefined>(initialDueDate ?? undefined)
   const [error, setError] = useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,9 +39,10 @@ export function TaskForm({ onSubmit, isEditing = false, initialTitle = "", initi
       return
     }
 
-    onSubmit(title.trim(), description.trim())
+    onSubmit(title.trim(), description.trim(), dueDate ? dueDate.toISOString() : undefined)
     setTitle("")
     setDescription("")
+    setDueDate(undefined)
     setError("")
   }
 
@@ -39,6 +51,7 @@ export function TaskForm({ onSubmit, isEditing = false, initialTitle = "", initi
       onSubmit={handleSubmit}
       className="space-y-4 p-6 bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow"
     >
+      {/* Title */}
       <div>
         <label htmlFor="task-title" className="block text-sm font-semibold text-foreground mb-2">
           Task Title
@@ -51,11 +64,12 @@ export function TaskForm({ onSubmit, isEditing = false, initialTitle = "", initi
             setTitle(e.target.value)
             setError("")
           }}
-          className={`transition-colors ${error ? "border-destructive focus:border-destructive" : ""}`}
+          className={cn("transition-colors", error && "border-destructive focus:border-destructive")}
         />
         {error && <p className="text-xs text-destructive mt-2 font-medium">{error}</p>}
       </div>
 
+      {/* Description */}
       <div>
         <label htmlFor="task-description" className="block text-sm font-semibold text-foreground mb-2">
           Description <span className="text-muted-foreground font-normal">(optional)</span>
@@ -70,6 +84,37 @@ export function TaskForm({ onSubmit, isEditing = false, initialTitle = "", initi
         />
       </div>
 
+      {/* 📅 Due Date */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-foreground">Due Date</label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              type="button"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !dueDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dueDate ? format(dueDate, "PPP") : "Pick a due date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={dueDate || undefined}
+              onSelect={setDueDate}
+              required={false} // ✅ fixes TS error
+              initialFocus
+            />
+
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Submit Button */}
       <Button type="submit" className="w-full h-10 font-semibold gap-2">
         <Plus className="h-4 w-4" />
         {isEditing ? "Update Task" : "Add Task"}

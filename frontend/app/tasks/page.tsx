@@ -9,6 +9,7 @@ import { Sparkles } from "lucide-react"
 import { tasksApi, type Task as ApiTask } from "@/lib/api/tasks"
 import { authApi } from "@/lib/api/auth"
 import { AuthModal } from "@/components/auth-modal"
+import { toast } from "sonner"
 
 interface Task extends Omit<ApiTask, 'createdAt'> {
   createdAt: Date
@@ -38,6 +39,7 @@ export default function Home() {
       )
     } catch (e) {
       console.error(e)
+      toast.error("Failed to fetch tasks")
     } finally {
       setLoading(false)
     }
@@ -48,31 +50,37 @@ export default function Home() {
   }, [fetchTasks, filter])
 
   useEffect(() => {
-    // try to validate session on load
     authApi
       .validate()
       .then((r) => setUserEmail(r.user.email))
       .catch(() => setUserEmail(null))
   }, [])
 
-  const addTask = useCallback(async (title: string, description: string) => {
-    try {
-      const created = await tasksApi.create({ title, description })
-      setTasks((prev) => [
-        { ...created, description: created.description || "", createdAt: new Date(created.createdAt) },
-        ...prev,
-      ])
-    } catch (e) {
-      console.error(e)
-    }
-  }, [])
+const addTask = useCallback(async (title: string, description: string, dueDate?: string) => {
+  try {
+    const created = await tasksApi.create({ title, description, dueDate })
+    setTasks((prev) => [
+      { ...created, description: created.description || "", createdAt: new Date(created.createdAt) },
+      ...prev,
+    ])
+    toast.success("Task created successfully!")
+  } catch (e: any) {
+    console.error(e)
+    toast.error(e?.message || "Failed to create task")
+  }
+}, [])
+
+
 
   const deleteTask = useCallback(async (id: string) => {
     try {
       await tasksApi.remove(id)
       setTasks((prev) => prev.filter((task) => task.id !== id))
-    } catch (e) {
+      toast.success("Task deleted successfully!")
+    } catch (e: any) {
       console.error(e)
+      const errorMessage = e?.message || "Failed to delete task"
+      toast.error(errorMessage)
     }
   }, [])
 
@@ -80,8 +88,11 @@ export default function Home() {
     try {
       const updated = await tasksApi.toggle(id)
       setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, completed: updated.completed } : task)))
-    } catch (e) {
+      toast.success(`Task ${updated.completed ? "completed" : "pending"}!`)
+    } catch (e: any) {
       console.error(e)
+      const errorMessage = e?.message || "Failed to toggle task"
+      toast.error(errorMessage)
     }
   }, [])
 
@@ -89,10 +100,14 @@ export default function Home() {
     try {
       const updated = await tasksApi.update(id, { title, description })
       setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, title: updated.title, description: updated.description || "" } : task)))
-    } catch (e) {
+      toast.success("Task updated successfully!")
+    } catch (e: any) {
       console.error(e)
+      const errorMessage = e?.message || "Failed to update task"
+      toast.error(errorMessage)
     }
   }, [])
+
 
   const handleEdit = (task: Task) => {
     setEditingTask(task)
@@ -157,16 +172,16 @@ export default function Home() {
         onClose={() => setShowEditModal(false)}
         onSave={updateTask}
       />
-    <AuthModal
+      {/* Auth Modal */}
+      <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}
         onAuthenticated={async () => {
-          // show email after login/register
           try {
             const r = await authApi.validate()
             setUserEmail(r.user.email)
             await fetchTasks(filter)
-          } catch {}
+          } catch { }
         }}
       />
     </main>

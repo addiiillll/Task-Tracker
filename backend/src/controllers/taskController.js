@@ -11,6 +11,14 @@ const getTasks = async (req, res) => {
 
     const tasks = await prisma.task.findMany({
       where,
+      include: {
+        owner: {
+          select: {
+            name: true,
+            email: true, // optional if you also want the email
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -52,7 +60,7 @@ const updateTask = async (req, res) => {
 
     // Ensure task belongs to user
     const existing = await prisma.task.findFirst({ where: { id, ownerId: req.user.id } });
-    if (!existing) return res.status(404).json({ message: 'Task not found' });
+    if (!existing) return res.status(404).json({ message: 'This is not your task.' });
 
     const task = await prisma.task.update({
       where: { id },
@@ -76,7 +84,7 @@ const toggleTask = async (req, res) => {
   try {
     const { id } = req.params;
     const existing = await prisma.task.findFirst({ where: { id, ownerId: req.user.id } });
-    if (!existing) return res.status(404).json({ message: 'Task not found' });
+    if (!existing) return res.status(404).json({ message: 'This is not your task.' });
 
     const task = await prisma.task.update({
       where: { id },
@@ -95,7 +103,7 @@ const deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
     const existing = await prisma.task.findFirst({ where: { id, ownerId: req.user.id } });
-    if (!existing) return res.status(404).json({ message: 'Task not found' });
+    if (!existing) return res.status(404).json({ message: 'This is not your task.' });
 
     await prisma.task.delete({ where: { id } });
     res.json({ success: true });
