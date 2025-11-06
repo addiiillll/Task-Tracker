@@ -4,7 +4,8 @@ const { prisma } = require('../config/db');
 const getTasks = async (req, res) => {
   try {
     const { status } = req.query; // all | completed | pending
-    const where = { ownerId: req.user.id };
+    const where = {}; // no owner filter
+
     if (status === 'completed') where.completed = true;
     if (status === 'pending') where.completed = false;
 
@@ -19,6 +20,7 @@ const getTasks = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 // POST /tasks – Add new task
 const createTask = async (req, res) => {

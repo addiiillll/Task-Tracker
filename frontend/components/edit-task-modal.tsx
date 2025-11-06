@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 interface Task {
   id: string
   title: string
-  description: string
+  description: string | null
   completed: boolean
   createdAt: Date
 }
@@ -29,7 +29,7 @@ export function EditTaskModal({ open, task, onClose, onSave }: EditTaskModalProp
   useEffect(() => {
     if (task) {
       setTitle(task.title)
-      setDescription(task.description)
+      setDescription(task.description || "")
       setError("")
     }
   }, [task, open])

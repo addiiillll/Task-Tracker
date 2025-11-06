@@ -5,7 +5,7 @@ import { TaskItem } from "./task-item"
 interface Task {
   id: string
   title: string
-  description: string
+  description: string | null
   completed: boolean
   createdAt: Date
 }

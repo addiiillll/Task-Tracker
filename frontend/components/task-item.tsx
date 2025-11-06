@@ -6,7 +6,7 @@ import { Trash2, Edit2 } from "lucide-react"
 interface Task {
   id: string
   title: string
-  description: string
+  description: string | null
   completed: boolean
   createdAt: Date
 }

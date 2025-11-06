@@ -1,10 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../config/db');
 
-/**
- * Enhanced Auth Middleware for httpOnly cookies
- * Supports both httpOnly cookies and Authorization headers for API compatibility
- */
+
 const authMiddleware = async (req, res, next) => {
   let token;
 
@@ -13,13 +10,14 @@ const authMiddleware = async (req, res, next) => {
     if (req.cookies && req.cookies.token) {
       token = req.cookies.token;
     }
-    // Priority 2: Check Authorization header (for API compatibility)
+    // Priority 2: Check Authorization header (for api compatibility)
     else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
 
+
     if (!token) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Access denied. No token provided.',
         code: 'NO_TOKEN'
       });
@@ -39,37 +37,35 @@ const authMiddleware = async (req, res, next) => {
     });
 
     if (!user) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Token is valid but user not found.',
         code: 'USER_NOT_FOUND'
       });
     }
 
-    // Attach user to request object
     req.user = user;
     req.token = token;
-    
+
     next();
 
   } catch (error) {
     console.error('Auth middleware error:', error);
 
-    // Handle specific JWT errors
     if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Invalid token.',
         code: 'INVALID_TOKEN'
       });
     }
-    
+
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Token expired.',
         code: 'TOKEN_EXPIRED'
       });
     }
 
-    return res.status(401).json({ 
+    return res.status(401).json({
       message: 'Token verification failed.',
       code: 'TOKEN_VERIFICATION_FAILED'
     });
