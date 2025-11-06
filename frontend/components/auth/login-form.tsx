@@ -34,8 +34,7 @@ export function LoginForm({ className }: { className?: string }) {
         setLoading(true)
         try {
             await authApi.login({ email, password })
-            window.location.reload()
-            router.push("/tasks") // redirect to dashboard/home
+            router.push("/tasks")
         } catch (e: any) {
             setError(e?.message || "Login failed")
         } finally {

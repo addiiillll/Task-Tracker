@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { CheckCircle2, LogIn, LogOut } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -8,6 +9,7 @@ import { AuthModal } from "@/components/auth-modal"
 import { authApi } from "@/lib/api/auth"
 
 export default function Navbar() {
+  const router = useRouter()
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [authOpen, setAuthOpen] = useState(false)
 
@@ -48,7 +50,7 @@ export default function Navbar() {
                       try {
                         await authApi.logout()
                         setUserEmail(null)
-                        window.location.reload()
+                        router.push("/")
                       } catch {}
                     }}
                   >
